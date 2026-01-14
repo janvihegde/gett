@@ -4,13 +4,19 @@ import os
 
 load_dotenv()
 
-MONGODB_URI = os.getenv("mongodb+srv://mejanvihegde_db_user:UYvp2M44qHh5tbbs@places.bnhxhtp.mongodb.net/?appName=places")
-DATABASE_NAME = os.getenv("geo_tourism")
+# Correct usage: get the variable NAME, not the value itself
+uri = os.getenv("MONGODB_URI") 
+db_name = os.getenv("DATABASE_NAME", "places")
 
-client = MongoClient("mongodb+srv://mejanvihegde_db_user:UYvp2M44qHh5tbbs@places.bnhxhtp.mongodb.net/?appName=places")
-db = client["geo_tourism"]
+if not uri:
+    # Fallback or error if .env is missing
+    print("Warning: MONGODB_URI not found in .env, checking local...")
+    # client = MongoClient("mongodb://localhost:27017") # Uncomment for local
+    raise ValueError("MONGODB_URI is missing from .env file")
+else:
+    client = MongoClient(uri)
 
-# Collections
-users_collection = db["users"]
+db = client[db_name]
+
 places_collection = db["places"]
 itineraries_collection = db["itineraries"]

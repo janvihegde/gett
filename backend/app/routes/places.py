@@ -1,37 +1,41 @@
-from fastapi import APIRouter
-from app.database import places_collection
+from fastapi import APIRouter, HTTPException
+from app.database import db
+from typing import List, Optional
+import random
 
 router = APIRouter()
 
-
 @router.get("/")
-def get_places(search: str | None = None):
+async def get_places(search: Optional[str] = None):
     query = {}
-
+    
+    # Search specifically in the 'City' field as requested
     if search:
-        query = {
-            "$or": [
-                {"city": {"$regex": search, "$options": "i"}},
-                {"name": {"$regex": search, "$options": "i"}},
-                {"state": {"$regex": search, "$options": "i"}}
-            ]
-        }
+        query["City"] = {"$regex": search, "$options": "i"}
 
-    places = list(places_collection.find(query, {"_id": 0}))
-    return places
+    # Fetch from MongoDB
+    places_cursor = db.places.find(query)
+    places_list = await places_cursor.to_list(length=100)
 
+    processed_places = []
+    for place in places_list:
+        # Convert ObjectId to string
+        place["id"] = str(place["_id"])
+        del place["_id"]
+        
+        # --- GENERATE IMAGE ---
+        # Since your DB doesn't have an image field, we fetch a relevant one 
+        # from Unsplash using the City and Type keys.
+        query_term = f"{place.get('City', 'India')} {place.get('Name', 'place')}"
+        place["image"] = f"https://source.unsplash.com/400x300/?{query_term}"
+        
+        # Add a constructed description if you don't have one in DB
+        if "description" not in place:
+            place["description"] = (
+                f"A beautiful {place.get('Significance', 'historical')} {place.get('Type', 'spot')} "
+                f"located in {place.get('Zone', 'the')} zone. Best visited in the {place.get('Best Time to visit', 'day')}."
+            )
 
-@router.post("/")
-def add_place(place: dict):
-    places_collection.insert_one(place)
-    return {"message": "Place added successfully"}
+        processed_places.append(place)
 
-@router.get("/state/{state_name}")
-def get_places_by_state(state_name: str):
-    places = list(
-        places_collection.find(
-            {"state": {"$regex": state_name, "$options": "i"}},
-            {"_id": 0}
-        )
-    )
-    return places
+    return processed_places
