@@ -1,16 +1,26 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import States from "./pages/States";
-import StatePlaces from "./pages/StatePlaces";
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import MainSearch from './pages/MainSearch';
+import PlaceList from './pages/PlaceList';
+import Itinerary from './pages/Itinerary';
+import './App.css'; // We'll add some styles later
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/states" element={<States />} />
-        <Route path="/states/:state" element={<StatePlaces />} />
-      </Routes>
-    </BrowserRouter>
+    <Router>
+      <div className="app-container">
+        <nav>
+          <Link to="/">Home</Link> | <Link to="/itinerary">My Itinerary</Link>
+        </nav>
+        
+        <Routes>
+          <Route path="/" element={<MainSearch />} />
+          <Route path="/places/:locationName" element={<PlaceList />} />
+          <Route path="/itinerary" element={<Itinerary />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
+
+export default App;

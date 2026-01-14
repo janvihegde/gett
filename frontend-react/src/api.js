@@ -1,21 +1,30 @@
-const BASE_URL = "http://127.0.0.1:8000";
+// src/api.js
+import axios from 'axios';
 
-export async function getPlaces(search = "") {
-  const res = await fetch(`${BASE_URL}/places?search=${search}`);
-  return await res.json();
-}
+// Ensure this matches your FastAPI url
+const API_URL = 'http://127.0.0.1:8000'; 
 
-export async function getPlacesByState(state) {
-  const res = await fetch(`${BASE_URL}/places?search=${state}`);
-  return await res.json();
-}
+export const api = axios.create({
+  baseURL: API_URL,
+});
 
-export async function addPlace(place) {
-  const res = await fetch(`${BASE_URL}/places`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(place),
-  });
+// 1. Search for places (e.g., "Karnataka", "Paris")
+export const searchPlaces = async (query) => {
+  // Assuming your places route handles a query param like ?location=...
+  // You might need to adjust endpoint based on your routes/places.py
+  const response = await api.get(`/places?search=${query}`);
+  return response.data;
+};
 
-  return await res.json();
+// 2. Create or Get Itinerary
+// For simplicity, we might just store the itinerary in local state, 
+// but here is how you'd hit the backend:
+export const addToItinerary = async (placeData) => {
+  const response = await api.post('/itineraries/add', placeData);
+  return response.data;
+};
+
+export const fetchItinerary = async () => {
+    const response = await api.get('/itineraries');
+    return response.data;
 }

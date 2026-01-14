@@ -19,7 +19,6 @@ app.add_middleware(
 
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(places.router, prefix="/places", tags=["Places"])
-app.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
 app.include_router(itineraries.router, prefix="/itineraries", tags=["Itineraries"])
 
 @app.get("/")

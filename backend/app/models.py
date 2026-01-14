@@ -12,11 +12,7 @@ class Place(BaseModel):
     location: dict   # GeoJSON
     rating: float
 
-class Review(BaseModel):
-    user_id: str
-    place_id: str
-    rating: int
-    comment: str
+
 
 class Itinerary(BaseModel):
     user_id: str
