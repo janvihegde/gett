@@ -1,22 +1,21 @@
 from pymongo import MongoClient
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
-# Correct usage: get the variable NAME, not the value itself
-uri = os.getenv("MONGODB_URI") 
-db_name = os.getenv("DATABASE_NAME", "places")
+MONGO_URI = os.getenv("MONGODB_URI")
+DB_NAME = os.getenv("DATABASE_NAME", "places")
 
-if not uri:
-    # Fallback or error if .env is missing
-    print("Warning: MONGODB_URI not found in .env, checking local...")
-    # client = MongoClient("mongodb://localhost:27017") # Uncomment for local
-    raise ValueError("MONGODB_URI is missing from .env file")
-else:
-    client = MongoClient(uri)
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
 
-db = client[db_name]
-
+# --- KEY FIX: Define these variables so they can be imported ---
 places_collection = db["places"]
-itineraries_collection = db["itineraries"]
+itineraries_collection = db["itineraries"] 
+
+try:
+    client.admin.command('ping')
+    print("✅  Successfully connected to MongoDB!")
+except Exception as e:
+    print(f"❌  Connection failed: {e}")

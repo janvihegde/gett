@@ -1,30 +1,26 @@
-// src/api.js
 import axios from 'axios';
 
-// Ensure this matches your FastAPI url
-const API_URL = 'http://127.0.0.1:8000'; 
+// Ensure this matches your Uvicorn port
+const API_URL = 'http://localhost:8000/api';
 
-export const api = axios.create({
-  baseURL: API_URL,
-});
-
-// 1. Search for places (e.g., "Karnataka", "Paris")
-export const searchPlaces = async (query) => {
-  // Assuming your places route handles a query param like ?location=...
-  // You might need to adjust endpoint based on your routes/places.py
-  const response = await api.get(`/places?search=${query}`);
-  return response.data;
+export const searchPlaces = async (term) => {
+    try {
+        // Calls the route we defined in step 2
+        const response = await axios.get(`${API_URL}/places/search`, {
+            params: { query: term }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("API Error:", error);
+        return [];
+    }
 };
 
-// 2. Create or Get Itinerary
-// For simplicity, we might just store the itinerary in local state, 
-// but here is how you'd hit the backend:
-export const addToItinerary = async (placeData) => {
-  const response = await api.post('/itineraries/add', placeData);
-  return response.data;
+export const addToItinerary = async (place) => {
+    try {
+        const response = await axios.post(`${API_URL}/itineraries`, place);
+        return response.data;
+    } catch (error) {
+        console.error("Save Error:", error);
+    }
 };
-
-export const fetchItinerary = async () => {
-    const response = await api.get('/itineraries');
-    return response.data;
-}

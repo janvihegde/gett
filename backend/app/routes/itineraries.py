@@ -1,30 +1,20 @@
-from fastapi import APIRouter, HTTPException
-from app.database import itineraries_collection
+from fastapi import APIRouter
 from app.models import Itinerary
+from app.database import itineraries_collection # This import works now!
+from typing import List
 
 router = APIRouter()
 
-@router.post("/", status_code=201)
-def create_itinerary(itinerary: Itinerary):
-    # Convert Pydantic model to a dictionary
-    itinerary_data = itinerary.model_dump()
-    
-    # Insert into MongoDB
-    result = itineraries_collection.insert_one(itinerary_data)
-    
-    return {
-        "message": "Itinerary created successfully",
-        "id": str(result.inserted_id)
-    }
-
-@router.get("/")
-def get_itineraries():
-    # Fetch all itineraries (limit 10 for safety)
-    itineraries = list(itineraries_collection.find().limit(10))
-    
-    # Convert ObjectId to string
-    for it in itineraries:
-        it["id"] = str(it["_id"])
-        del it["_id"]
-    
+@router.get("/", response_model=List[Itinerary])
+async def get_itineraries():
+    itineraries = []
+    for doc in itineraries_collection.find():
+        doc["id"] = str(doc["_id"])
+        itineraries.append(doc)
     return itineraries
+
+@router.post("/", status_code=201)
+async def create_itinerary(itinerary: Itinerary):
+    new_itinerary = itinerary.dict()
+    result = itineraries_collection.insert_one(new_itinerary)
+    return {"message": "Itinerary saved", "id": str(result.inserted_id)}
