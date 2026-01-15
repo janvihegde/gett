@@ -16,8 +16,14 @@ class Place(BaseModel):
     class Config:
         extra = "allow" 
 
-# 2. Itinerary Model (This was missing!)
 class Itinerary(BaseModel):
-    user_id: Optional[str] = "guest"
-    # This list will hold objects like { "name": "Taj Mahal", "visited": False }
-    places: List[Dict[str, Any]] = []
+    id: Optional[str] = None
+    name: str
+    location: str
+    description: Optional[str] = "No description available"
+    rating: Optional[str] = "N/A"
+    price: Optional[str] = "0"
+    image: Optional[str] = None
+    
+    class Config:
+        extra = "ignore"

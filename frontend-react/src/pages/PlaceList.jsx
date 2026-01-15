@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { searchPlaces } from '../api';
+import { searchPlaces, addToItinerary } from '../api';
 import '../styles/PlaceList.css';
 
 const PlaceList = () => {
@@ -12,12 +12,15 @@ const PlaceList = () => {
         const fetchPlaces = async () => {
             setLoading(true);
             try {
-                // If query is empty, default to 'Delhi' to show your data
-                const searchTerm = query || 'Delhi';
-                const data = await searchPlaces(searchTerm);
+                // Default to Delhi if no query
+                const term = query || 'Delhi';
+                console.log("Fetching for:", term);
+                
+                const data = await searchPlaces(term);
+                console.log("Received Data:", data); // Check browser console (F12)
                 setPlaces(data);
-            } catch (error) {
-                console.error("Failed to fetch", error);
+            } catch (err) {
+                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -26,40 +29,77 @@ const PlaceList = () => {
         fetchPlaces();
     }, [query]);
 
+    const handleAdd = async (place) => {
+        try {
+            await addToItinerary(place);
+            alert(`Added ${place.name} to your itinerary!`);
+        } catch (error) {
+            alert("Failed to add to itinerary");
+        }
+    };
+
     return (
         <div className="place-list-container">
-            <header className="results-header">
+            <div className="results-header">
                 <Link to="/" className="back-link">← Back</Link>
-                <h1>Explore: <span className="highlight">{query || "All Destinations"}</span></h1>
-            </header>
+                <h1>Exploring: <span className="highlight">{query || "Delhi"}</span></h1>
+            </div>
 
-            {loading && <div className="loader">Searching database...</div>}
+            {/* --- DEBUG SECTION: Remove this after you see data! --- */}
+            {/* <div style={{background: '#eee', padding: '10px', marginBottom: '20px', fontSize: '12px'}}>
+                <strong>Debug Data Check:</strong> Found {places.length} items.
+                <br/>
+                First item name: {places[0]?.name || "None"}
+            </div> */}
+            {/* ----------------------------------------------------- */}
 
-            {!loading && places.length === 0 && (
-                <div className="empty-state">
-                    <h3>No results found for "{query}"</h3>
-                    <p>Try searching for "Delhi", "Agra", or "Tomb".</p>
+            {loading ? (
+                <div className="loader">Loading places...</div>
+            ) : (
+                <div className="places-grid">
+                    {places.map((place, index) => (
+                        <div key={place.id || index} className="place-card">
+                            {/* Use a valid image or a fallback color if image fails */}
+                            <div 
+                               
+                            >
+                                <span className="rating">★ {place.rating}</span>
+                            </div>
+                            
+                            <div className="card-content">
+                                <h2>{place.name}</h2>
+                                <p className="location">📍 {place.location}</p>
+                                
+                                {/* Truncate description if too long */}
+                                <p className="description" title={place.description}>
+                                    {place.description && place.description.length > 100 
+                                        ? place.description.substring(0, 100) + "..." 
+                                        : place.description}
+                                </p>
+                                
+                                <div className="card-footer">
+                                    <span className="price-tag">
+                                        {place.price === "0" ? "Free Entry" : `₹${place.price}`}
+                                    </span>
+                                    <button 
+                                        className="add-btn"
+                                        onClick={() => handleAdd(place)}
+                                    >
+                                        Add to Itinerary
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
-            <div className="places-grid">
-                {places.map((place) => (
-                    <div key={place.id} className="place-card">
-                        <div className="card-image" style={{backgroundImage: `url(${place.image})`}}>
-                            <span className="rating">★ {place.rating}</span>
-                        </div>
-                        <div className="card-content">
-                            <h2>{place.name}</h2>
-                            <p className="location">📍 {place.location}</p>
-                            <p className="description">{place.description}</p>
-                            <div className="card-footer">
-                                <span className="price-tag">₹ {place.price}</span>
-                                <button className="add-btn">Add to Plan</button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            {!loading && places.length === 0 && (
+                <div className="empty-state">
+                    <h3>No results found.</h3>
+                    <p>The backend returned 0 item.".</p>
+                </div>
+            )}
         </div>
     );
 };
